@@ -10,3 +10,4 @@
 | main      | main分支         |
 | hugo_ide  | github 项目      |
 | hugo_demo | for personal use |
+| wjn_ide   | github 项目      |
