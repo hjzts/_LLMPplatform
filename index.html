@@ -74,14 +74,16 @@
         <div class="ui dropdown item site-links on-hover">
             File <i class="dropdown icon"></i>
             <div class="menu">
-                <a class="item" target="_blank" href="index.html"><i class="file code icon"></i> New
-                    File</a>
+                <div class="item" onclick="newFile()">
+                    <i class="file code icon"></i>
+                    New File
+                </div>
                 <div class="item" onclick="downloadSource()"><i class="download icon"></i> Download
                 </div>
             </div>
         </div>
         <div id="insert-template-btn" class="ui dropdown item site-links on-hover">
-            Clean All
+            Reload
         </div>
         <div id="save-btn" class="ui dropdown item site-links on-hover">
             SAVE (Ctrl + S)

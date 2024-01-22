@@ -121,7 +121,7 @@ function showError(title, content) {
     $("#site-modal").modal("show");
 }
 
-function handleError(jqXHR, textStatus, errorThrown)  {
+function handleError(jqXHR, textStatus, errorThrown) {
     showError(`${jqXHR.statusText} (${jqXHR.status})`, `<pre>${JSON.stringify(jqXHR, null, 4)}</pre>`);
 }
 
@@ -168,6 +168,29 @@ function handleResult(data) {
 function downloadSource() {
     var value = parseInt($selectLanguage.val());
     download(sourceEditor.getValue(), fileNames[value], "text/plain");
+}
+
+function newFile() {
+    save();
+    if (sourceEditor.getValue().localeCompare('') !== 0) {
+        if (confirm("Are you sure? All Your current changes will be lost.")) {
+            cleanAll();
+        }
+    }
+}
+
+function cleanAll() {
+    currentLanguageId = parseInt($selectLanguage.val());
+    if (currentLanguageId === 50) {
+        localStorage.setItem('CSource', '');
+        localStorage.setItem('CStdin', '');
+    } else if (currentLanguageId === 54) {
+        localStorage.setItem('CppSource', '');
+        localStorage.setItem('CppStdin', '');
+    }
+    sourceEditor.setValue('');
+    stdinEditor.setValue('');
+    save();
 }
 
 function run() {
@@ -290,9 +313,10 @@ function insertTemplate() {
     sourceEditor.setValue(sources[currentLanguageId]);
     stdinEditor.setValue(inputs[currentLanguageId] || "");
     changeEditorLanguage();
+    save();
 }
 
-function autoSave() {
+function save() {
     currentLanguageId = parseInt($selectLanguage.val());
     if (currentLanguageId === 50) {
         localStorage.setItem('CSource', sourceEditor.getValue());
@@ -303,9 +327,19 @@ function autoSave() {
     }
 }
 
+function saveOppo() {
+    currentLanguageId = parseInt($selectLanguage.val());
+    if (currentLanguageId === 54) {
+        localStorage.setItem('CSource', sourceEditor.getValue());
+        localStorage.setItem('CStdin', stdinEditor.getValue());
+    } else if (currentLanguageId === 50) {
+        localStorage.setItem('CppSource', sourceEditor.getValue());
+        localStorage.setItem('CppStdin', stdinEditor.getValue());
+    }
+}
+
 function insertBeforeWork() {
     currentLanguageId = parseInt($selectLanguage.val());
-
     if (currentLanguageId === 50 && localStorage.getItem('CSource') !== null) {
         sourceEditor.setValue(localStorage.getItem('CSource'));
         stdinEditor.setValue(localStorage.getItem('CStdin'));
@@ -357,6 +391,7 @@ $(document).ready(function () {
 
     $selectLanguage = $("#select-language");
     $selectLanguage.change(function (e) {
+        saveOppo();
         insertBeforeWork();
     });
 
@@ -373,16 +408,16 @@ $(document).ready(function () {
 
     $saveBtn = $("#save-btn");
     $saveBtn.click(function (e) {
-        autoSave();
-        confirm("save sucessfully!");
+        save();
+        alert("Save successfully!");
     });
 
     $(document).on("keydown", function (e) {
         var keycode = e.keyCode || e.which;
         if (e.ctrlKey && keycode === 83) {
             e.preventDefault();
-            autoSave();
-            confirm("save successfully!");
+            save();
+            alert("Save successfully!");
         }
     });
 
@@ -392,7 +427,7 @@ $(document).ready(function () {
 
     $runBtn = $("#run-btn");
     $runBtn.click(function (e) {
-        autoSave();
+        save();
         run();
     });
 
@@ -517,7 +552,8 @@ var basicSource = "";
 var cSource = "\
 #include <stdio.h>\n\
 \n\
-int main(void) {\n\
+int main(void) \n\
+{\n\
     printf(\"Hello World!\\n\");\n\
     return 0;\n\
 }\n\
@@ -710,11 +746,7 @@ var mpicxxSource = "";
 
 var mpipySource = "";
 
-var nimSource = "\
-# On the Judge0 IDE, Nim is automatically\n\
-# updated every day to the latest stable version.\n\
-echo \"hello, world\"\n\
-";
+var nimSource = "";
 
 var pythonForMlSource = "";
 
@@ -860,5 +892,3 @@ var competitiveProgrammingInput = "\
 var inputs = {
     54: competitiveProgrammingInput
 }
-
-var competitiveProgrammingCompilerOptions = "-O3 --std=c++17 -Wall -Wextra -Wold-style-cast -Wuseless-cast -Wnull-dereference -Werror -Wfatal-errors -pedantic -pedantic-errors";
