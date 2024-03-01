@@ -1,18 +1,21 @@
-const API_KEY = "";
+const API_KEY = "header('Access-Control-Allow-Origin: *');";
 
 const AUTH_HEADERS = API_KEY ? {
-    "X-RapidAPI-Key": API_KEY
+    "Access-Control-Allow-Origin":"*",// "http://localhost:63342/",
+    "Access-Control-Allow-Credentials":"true",
+    "Access-Control-Allow-Headers":"access-control-allow-origin, authority, content-type, version-info, X-Requested-With",
+    "Access-Control-Allow-Methods":"POST, GET, OPTIONS, DELETE, HEAD"
 } : {};
 
-var defaultUrl = localStorageGetItem("api-url") || "https://judge0-ce.p.rapidapi.com";
-var extraApiUrl = "https://judge0-extra-ce.p.rapidapi.com";
+var defaultUrl = "https://coliru.stacked-crooked.com/compile"; //localStorageGetItem("api-url") || "https://judge0-ce.p.rapidapi.com";
+var extraApiUrl = "https://coliru.stacked-crooked.com/compile";//"https://judge0-extra-ce.p.rapidapi.com";
 
-if (location.hostname == "ide.judge0.com") {
+if (location.hostname === "ide.judge0.com") {
     defaultUrl = "https://ce.judge0.com";
     extraApiUrl = "https://extra-ce.judge0.com";
 }
 
-var apiUrl = defaultUrl;
+var apiUrl = extraApiUrl;
 var wait = ((localStorageGetItem("wait") || "false") === "true");
 const INITIAL_WAIT_TIME_MS = 500;
 const WAIT_TIME_FUNCTION = i => 100 * i;
@@ -208,34 +211,50 @@ function run() {
     var x = layout.root.getItemsById("stdout")[0];
     x.parent.header.parent.setActiveContentItem(x);
 
-    var sourceValue = encode(sourceEditor.getValue());
+    var sourceValue = (sourceEditor.getValue());
     var stdinValue = encode(stdinEditor.getValue());
     var languageId = resolveLanguageId($selectLanguage.val());
-    var compilerOptions = $compilerOptions.val();
-    var commandLineArguments = $commandLineArguments.val();
+    var compilerOptions = "g++ -std=c++23  -O2 -Wall -Wextra -pedantic -pthread -pedantic-errors main.cpp -lm  -latomic  2>&1 | sed \"s/^//\"; if [ -x a.out ]; then ./a.out | sed \"s/^//\"; fi";
 
+    var commandLineArguments = $commandLineArguments.val();
     if (parseInt(languageId) === 44) {
         sourceValue = sourceEditor.getValue();
     }
 
     var data = {
-        source_code: sourceValue,
-        language_id: languageId,
-        stdin: stdinValue,
-        compiler_options: compilerOptions,
-        command_line_arguments: commandLineArguments,
-        redirect_stderr_to_stdout: true
+        src: sourceValue,//源代码
+        //language_id: languageId,//语言选项
+        //stdin: stdinValue,//标准输入
+        cmd: compilerOptions,//编译器选项
+        //command_line_arguments: commandLineArguments,//命令行参数
+        //redirect_stderr_to_stdout: true
     };
 
     var sendRequest = function (data) {
+        console.log('enter1');
+        var http = new XMLHttpRequest();
+        http.open("POST", apiUrl, false);
+        console.log(compilerOptions, sourceValue);
+        http.send(JSON.stringify({"cmd":compilerOptions,"src":sourceValue}));
+        console.log(http.response);
+
+        stdoutEditor.setValue(http.response);
+
+        // var any = JSON.stringify(http.response);
+        // handleResult(any);
+        // data=encode(data);
+        // handleResult(JSON.stringify(data));
+
+/*
+        console.log('enter');
         timeStart = performance.now();
         $.ajax({
-            url: apiUrl + `/submissions?base64_encoded=true&wait=${wait}`,
+            url: apiUrl,// + `/submissions?base64_encoded=true&wait=${wait}`,
             type: "POST",
             async: true,
             contentType: "application/json",
             data: JSON.stringify(data),
-            headers: AUTH_HEADERS,
+            headers:AUTH_HEADERS,
             success: function (data, textStatus, jqXHR) {
                 console.log(`Your submission token is: ${data.token}`);
                 if (wait) {
@@ -245,7 +264,7 @@ function run() {
                 }
             },
             error: handleRunError
-        });
+        });*/
     }
 
     var fetchAdditionalFiles = false;
@@ -284,7 +303,7 @@ function fetchSubmission(submission_token, iteration) {
     }
 
     $.ajax({
-        url: apiUrl + "/submissions/" + submission_token + "?base64_encoded=true",
+        url: apiUrl,// + "/submissions/" + submission_token + "?base64_encoded=true",
         type: "GET",
         async: true,
         accept: "application/json",
