@@ -1,50 +1,29 @@
-const API_KEY = "header('Access-Control-Allow-Origin: *');";
+const defaultUrl = "https://coliru.stacked-crooked.com/compile";
 
-const AUTH_HEADERS = API_KEY ? {
-    "Access-Control-Allow-Origin":"*",// "http://localhost:63342/",
-    "Access-Control-Allow-Credentials":"true",
-    "Access-Control-Allow-Headers":"access-control-allow-origin, authority, content-type, version-info, X-Requested-With",
-    "Access-Control-Allow-Methods":"POST, GET, OPTIONS, DELETE, HEAD"
-} : {};
+let apiUrl = defaultUrl;
+let wait = ((localStorageGetItem("wait") || "false") === "true");
 
-var defaultUrl = "https://coliru.stacked-crooked.com/compile"; //localStorageGetItem("api-url") || "https://judge0-ce.p.rapidapi.com";
-var extraApiUrl = "https://coliru.stacked-crooked.com/compile";//"https://judge0-extra-ce.p.rapidapi.com";
+let fontSize = 15;
 
-if (location.hostname === "ide.judge0.com") {
-    defaultUrl = "https://ce.judge0.com";
-    extraApiUrl = "https://extra-ce.judge0.com";
-}
+let layout;
 
-var apiUrl = extraApiUrl;
-var wait = ((localStorageGetItem("wait") || "false") === "true");
-const INITIAL_WAIT_TIME_MS = 500;
-const WAIT_TIME_FUNCTION = i => 100 * i;
-const MAX_PROBE_REQUESTS = 50;
+let sourceEditor;
+let stdinEditor;
+let stdoutEditor;
 
-var blinkStatusLine = ((localStorageGetItem("blink") || "true") === "true");
+let currentLanguageId;
 
-var fontSize = 15;
+let $selectLanguage;
+let $compilerOptions;
+let $commandLineArguments;
+let $insertTemplateBtn;
+let $runBtn;
+let $saveBtn;
+let $navigationMessage;
+let $updates;
+let $statusLine;
 
-var layout;
-
-var sourceEditor;
-var stdinEditor;
-var stdoutEditor;
-
-var currentLanguageId;
-
-var $selectLanguage;
-var $compilerOptions;
-var $commandLineArguments;
-var $insertTemplateBtn;
-var $runBtn;
-var $saveBtn;
-var $navigationMessage;
-var $updates;
-var $statusLine;
-
-var timeStart;
-var layoutConfig = {
+const layoutConfig = {
     settings: {
         showPopoutIcon: false,
         reorderEnabled: true
@@ -95,7 +74,7 @@ function encode(str) {
 }
 
 function decode(bytes) {
-    var escaped = escape(atob(bytes || ""));
+    const escaped = escape(atob(bytes || ""));
     try {
         return decodeURIComponent(escaped);
     } catch {
@@ -118,58 +97,8 @@ function localStorageGetItem(key) {
     }
 }
 
-function showError(title, content) {
-    $("#site-modal #title").html(title);
-    $("#site-modal .content").html(content);
-    $("#site-modal").modal("show");
-}
-
-function handleError(jqXHR, textStatus, errorThrown) {
-    showError(`${jqXHR.statusText} (${jqXHR.status})`, `<pre>${JSON.stringify(jqXHR, null, 4)}</pre>`);
-}
-
-function handleRunError(jqXHR, textStatus, errorThrown) {
-    handleError(jqXHR, textStatus, errorThrown);
-    $runBtn.removeClass("loading");
-}
-
-function handleResult(data) {
-    const tat = Math.round(performance.now() - timeStart);
-    console.log(`It took ${tat}ms to get submission result.`);
-
-    const status = data.status;
-    const stdout = decode(data.stdout);
-    const compile_output = decode(data.compile_output);
-    const time = (data.time === null ? "-" : data.time + "s");
-    const memory = (data.memory === null ? "-" : data.memory + "KB");
-
-    $statusLine.html(`${status.description}, ${time}, ${memory} (TAT: ${tat}ms)`);
-
-    if (blinkStatusLine) {
-        $statusLine.addClass("blink");
-        setTimeout(function () {
-            blinkStatusLine = false;
-            localStorageSetItem("blink", "false");
-            $statusLine.removeClass("blink");
-        }, 3000);
-    }
-
-    const output = [compile_output, stdout].join("\n").trim();
-
-    stdoutEditor.setValue(output);
-
-    if (output !== "") {
-        let dot = document.getElementById("stdout-dot");
-        if (!dot.parentElement.classList.contains("lm_active")) {
-            dot.hidden = false;
-        }
-    }
-
-    $runBtn.removeClass("loading");
-}
-
 function downloadSource() {
-    var value = parseInt($selectLanguage.val());
+    const value = parseInt($selectLanguage.val());
     download(sourceEditor.getValue(), fileNames[value], "text/plain");
 }
 
@@ -196,6 +125,13 @@ function cleanAll() {
     save();
 }
 
+/****************************** 处理输入输出运行结果 **************************/
+function showError(title, content) {
+    $("#site-modal #title").html(title);
+    $("#site-modal .content").html(content);
+    $("#site-modal").modal("show");
+}
+
 function run() {
     if (sourceEditor.getValue().trim() === "") {
         showError("Error", "Source code can't be empty!");
@@ -208,123 +144,33 @@ function run() {
 
     stdoutEditor.setValue("");
 
-    var x = layout.root.getItemsById("stdout")[0];
+    const x = layout.root.getItemsById("stdout")[0];
     x.parent.header.parent.setActiveContentItem(x);
 
-    var sourceValue = (sourceEditor.getValue());
-    var stdinValue = encode(stdinEditor.getValue());
-    var languageId = resolveLanguageId($selectLanguage.val());
-    var compilerOptions = "g++ -std=c++23  -O2 -Wall -Wextra -pedantic -pthread -pedantic-errors main.cpp -lm  -latomic  2>&1 | sed \"s/^//\"; if [ -x a.out ]; then ./a.out | sed \"s/^//\"; fi";
+    const sourceValue = (sourceEditor.getValue());
+    const compilerOptions = "g++ -std=c++23  -O2 -Wall -Wextra -pedantic -pthread -pedantic-errors main.cpp -lm  -latomic  2>&1 | sed \"s/^//\"; if [ -x a.out ]; then ./a.out | sed \"s/^//\"; fi";
 
-    var commandLineArguments = $commandLineArguments.val();
-    if (parseInt(languageId) === 44) {
-        sourceValue = sourceEditor.getValue();
-    }
-
-    var data = {
-        src: sourceValue,//源代码
-        //language_id: languageId,//语言选项
-        //stdin: stdinValue,//标准输入
-        cmd: compilerOptions,//编译器选项
-        //command_line_arguments: commandLineArguments,//命令行参数
-        //redirect_stderr_to_stdout: true
+    const data = {
+        src: sourceValue,
+        cmd: compilerOptions,
     };
 
-    var sendRequest = function (data) {
-        console.log('enter1');
-        var http = new XMLHttpRequest();
+    const sendRequest = function (data) {
+        const http = new XMLHttpRequest();
         http.open("POST", apiUrl, false);
-        console.log(compilerOptions, sourceValue);
-        http.send(JSON.stringify({"cmd":compilerOptions,"src":sourceValue}));
-        console.log(http.response);
-
+        http.send(JSON.stringify(data));
         stdoutEditor.setValue(http.response);
-
-        // var any = JSON.stringify(http.response);
-        // handleResult(any);
-        // data=encode(data);
-        // handleResult(JSON.stringify(data));
-
-/*
-        console.log('enter');
-        timeStart = performance.now();
-        $.ajax({
-            url: apiUrl,// + `/submissions?base64_encoded=true&wait=${wait}`,
-            type: "POST",
-            async: true,
-            contentType: "application/json",
-            data: JSON.stringify(data),
-            headers:AUTH_HEADERS,
-            success: function (data, textStatus, jqXHR) {
-                console.log(`Your submission token is: ${data.token}`);
-                if (wait) {
-                    handleResult(data);
-                } else {
-                    setTimeout(fetchSubmission.bind(null, data.token, 1), INITIAL_WAIT_TIME_MS);
-                }
-            },
-            error: handleRunError
-        });*/
-    }
-
-    var fetchAdditionalFiles = false;
-    if (parseInt(languageId) === 82) {
-        if (sqliteAdditionalFiles === "") {
-            fetchAdditionalFiles = true;
-            $.ajax({
-                url: `./data/additional_files_zip_base64.txt`,
-                type: "GET",
-                async: true,
-                contentType: "text/plain",
-                success: function (responseData, textStatus, jqXHR) {
-                    sqliteAdditionalFiles = responseData;
-                    data["additional_files"] = sqliteAdditionalFiles;
-                    sendRequest(data);
-                },
-                error: handleRunError
-            });
-        } else {
-            data["additional_files"] = sqliteAdditionalFiles;
-        }
-    }
-
-    if (!fetchAdditionalFiles) {
-        sendRequest(data);
-    }
+        $runBtn.removeClass("loading");
+    };
+    sendRequest(data);
 }
 
-function fetchSubmission(submission_token, iteration) {
-    if (iteration >= MAX_PROBE_REQUESTS) {
-        handleRunError({
-            statusText: "Maximum number of probe requests reached",
-            status: 504
-        }, null, null);
-        return;
-    }
-
-    $.ajax({
-        url: apiUrl,// + "/submissions/" + submission_token + "?base64_encoded=true",
-        type: "GET",
-        async: true,
-        accept: "application/json",
-        headers: AUTH_HEADERS,
-        success: function (data, textStatus, jqXHR) {
-            if (data.status.id <= 2) { // In Queue or Processing
-                $statusLine.html(data.status.description);
-                setTimeout(fetchSubmission.bind(null, submission_token, iteration + 1), WAIT_TIME_FUNCTION(iteration));
-                return;
-            }
-            handleResult(data);
-        },
-        error: handleRunError
-    });
-}
+/**************************** Other Setting ****************************/
 
 function changeEditorLanguage() {
     monaco.editor.setModelLanguage(sourceEditor.getModel(), $selectLanguage.find(":selected").attr("mode"));
     currentLanguageId = parseInt($selectLanguage.val());
     $(".lm_title")[0].innerText = fileNames[currentLanguageId];
-    apiUrl = resolveApiUrl($selectLanguage.val());
 }
 
 function insertTemplate() {
@@ -336,6 +182,7 @@ function insertTemplate() {
 }
 
 function save() {
+    console.log("save!");
     currentLanguageId = parseInt($selectLanguage.val());
     if (currentLanguageId === 50) {
         localStorage.setItem('CSource', sourceEditor.getValue());
@@ -371,18 +218,7 @@ function insertBeforeWork() {
 
 function loadLanguage() {
     $selectLanguage.dropdown("set selected", $selectLanguage[0].options[0].value);
-    apiUrl = resolveApiUrl($selectLanguage.val())
     insertBeforeWork();
-}
-
-function resolveLanguageId(id) {
-    id = parseInt(id);
-    return languageIdTable[id] || id;
-}
-
-function resolveApiUrl(id) {
-    id = parseInt(id);
-    return languageApiUrlTable[id] || defaultUrl;
 }
 
 function editorsUpdateFontSize(fontSize) {
@@ -392,8 +228,8 @@ function editorsUpdateFontSize(fontSize) {
 }
 
 function updateScreenElements() {
-    var display = window.innerWidth <= 1200 ? "none" : "";
-    $(".wide.screen.only").each(function (index) {
+    const display = window.innerWidth <= 1200 ? "none" : "";
+    $(".wide.screen.only").each(function () {
         $(this).css("display", display);
     });
 }
@@ -406,10 +242,8 @@ $(window).resize(function () {
 $(document).ready(function () {
     updateScreenElements();
 
-    //console.log("Hey, Judge0 IDE is open-sourced: https://github.com/judge0/ide. Have fun!");
-
     $selectLanguage = $("#select-language");
-    $selectLanguage.change(function (e) {
+    $selectLanguage.change(function () {
         saveOppo();
         insertBeforeWork();
     });
@@ -419,20 +253,20 @@ $(document).ready(function () {
     $commandLineArguments.attr("size", $commandLineArguments.attr("placeholder").length);
 
     $insertTemplateBtn = $("#insert-template-btn");
-    $insertTemplateBtn.click(function (e) {
+    $insertTemplateBtn.click(function () {
         if (confirm("Are you sure? Your current changes will be lost.")) {
             insertTemplate();
         }
     });
 
     $saveBtn = $("#save-btn");
-    $saveBtn.click(function (e) {
+    $saveBtn.click(function () {
         save();
         alert("Save successfully!");
     });
 
     $(document).on("keydown", function (e) {
-        var keycode = e.keyCode || e.which;
+        const keycode = e.keyCode || e.which;
         if (e.ctrlKey && keycode === 83) {
             e.preventDefault();
             save();
@@ -445,7 +279,7 @@ $(document).ready(function () {
     }
 
     $runBtn = $("#run-btn");
-    $runBtn.click(function (e) {
+    $runBtn.click(function () {
         save();
         run();
     });
@@ -456,33 +290,39 @@ $(document).ready(function () {
     $statusLine = $("#status-line");
 
     $(document).on("keydown", "body", function (e) {
-        var keyCode = e.keyCode || e.which;
+        const keyCode = e.keyCode || e.which;
         if ((e.metaKey || e.ctrlKey) && keyCode === 13) { // Ctrl + Enter, CMD + Enter
             e.preventDefault();
+            save();
             run();
-        } else if (keyCode == 119) { // F8
+        } else if (keyCode === 119) { // F8
             e.preventDefault();
-            var url = prompt("Enter base URL:", apiUrl);
+            let url = prompt("Enter base URL:", apiUrl);
             if (url != null) {
                 url = url.trim();
             }
-            if (url != null && url != "") {
+            if (url != null && url !== "") {
                 apiUrl = url;
                 localStorageSetItem("api-url", apiUrl);
             }
-        } else if (keyCode == 118) { // F7
+        } else if (keyCode === 118) { // F7
             e.preventDefault();
             wait = !wait;
             localStorageSetItem("wait", wait);
             alert(`Submission wait is ${wait ? "ON. Enjoy" : "OFF"}.`);
-        } else if (event.ctrlKey && keyCode == 107) { // Ctrl++
+        } else if (e.ctrlKey && keyCode === 107) { // Ctrl++
             e.preventDefault();
             fontSize += 1;
             editorsUpdateFontSize(fontSize);
-        } else if (event.ctrlKey && keyCode == 109) { // Ctrl+-
+        } else if (e.ctrlKey && keyCode === 109) { // Ctrl+-
             e.preventDefault();
             fontSize -= 1;
             editorsUpdateFontSize(fontSize);
+        } else if (e.ctrlKey && keyCode === 82) {
+            e.preventDefault();
+            if (confirm("Are you sure? Your current changes will be lost.")) {
+                insertTemplate();
+            }
         }
     });
 
@@ -494,7 +334,7 @@ $(document).ready(function () {
         $(this).closest(".message").transition("fade");
     });
 
-    require(["vs/editor/editor.main"], function (ignorable) {
+    require(["vs/editor/editor.main"], function () {
         layout = new GoldenLayout(layoutConfig, $("#site-content"));
 
         layout.registerComponent("source", function (container, state) {
@@ -509,7 +349,7 @@ $(document).ready(function () {
                 }
             });
 
-            sourceEditor.getModel().onDidChangeContent(function (e) {
+            sourceEditor.getModel().onDidChangeContent(function () {
                 currentLanguageId = parseInt($selectLanguage.val());
             });
 
@@ -562,13 +402,7 @@ $(document).ready(function () {
 });
 
 // Template Sources
-var assemblySource = "";
-
-var bashSource = "";
-
-var basicSource = "";
-
-var cSource = "\
+const cSource = "\
 #include <stdio.h>\n\
 \n\
 int main(void) \n\
@@ -578,11 +412,8 @@ int main(void) \n\
 }\n\
 ";
 
-var csharpSource = "";
 
-var cppSource = "";
-
-var competitiveProgrammingSource = "\
+const competitiveProgrammingSource = "\
 #include <algorithm>\n\
 #include <cstdint>\n\
 #include <iostream>\n\
@@ -689,158 +520,9 @@ int main()\n\
 }\n\
 ";
 
-var clojureSource = "";
-
-var cobolSource = "";
-
-var lispSource = "";
-
-var dSource = "";
-
-var elixirSource = "";
-
-var erlangSource = "";
-
-var executableSource = "";
-
-var fsharpSource = "";
-
-var fortranSource = "";
-
-var goSource = "";
-
-var groovySource = "";
-var haskellSource = "";
-
-var javaSource = "";
-
-var javaScriptSource = "";
-
-var kotlinSource = "";
-
-var luaSource = "";
-
-var objectiveCSource = "";
-
-var ocamlSource = "";
-
-var octaveSource = "";
-
-var pascalSource = "";
-
-var perlSource = "";
-
-var phpSource = "";
-
-var plainTextSource = "";
-
-var prologSource = "";
-
-var pythonSource = ")";
-
-var rSource = "";
-
-var rubySource = "";
-
-var rustSource = "";
-
-var scalaSource = "";
-
-var sqliteSource = "";
-var sqliteAdditionalFiles = "";
-
-var swiftSource = "";
-
-var typescriptSource = "";
-
-var vbSource = "";
-
-var c3Source = "";
-
-var javaTestSource = "";
-
-var mpiccSource = "";
-
-var mpicxxSource = "";
-
-var mpipySource = "";
-
-var nimSource = "";
-
-var pythonForMlSource = "";
-
-var bosqueSource = "";
-
-var cppTestSource = "";
-
-var csharpTestSource = "";
-
 var sources = {
-    45: assemblySource,
-    46: bashSource,
-    47: basicSource,
-    48: cSource,
-    49: cSource,
     50: cSource,
-    51: csharpSource,
-    52: cppSource,
-    53: cppSource,
     54: competitiveProgrammingSource,
-    55: lispSource,
-    56: dSource,
-    57: elixirSource,
-    58: erlangSource,
-    44: executableSource,
-    59: fortranSource,
-    60: goSource,
-    61: haskellSource,
-    62: javaSource,
-    63: javaScriptSource,
-    64: luaSource,
-    65: ocamlSource,
-    66: octaveSource,
-    67: pascalSource,
-    68: phpSource,
-    43: plainTextSource,
-    69: prologSource,
-    70: pythonSource,
-    71: pythonSource,
-    72: rubySource,
-    73: rustSource,
-    74: typescriptSource,
-    75: cSource,
-    76: cppSource,
-    77: cobolSource,
-    78: kotlinSource,
-    79: objectiveCSource,
-    80: rSource,
-    81: scalaSource,
-    82: sqliteSource,
-    83: swiftSource,
-    84: vbSource,
-    85: perlSource,
-    86: clojureSource,
-    87: fsharpSource,
-    88: groovySource,
-    1001: cSource,
-    1002: cppSource,
-    1003: c3Source,
-    1004: javaSource,
-    1005: javaTestSource,
-    1006: mpiccSource,
-    1007: mpicxxSource,
-    1008: mpipySource,
-    1009: nimSource,
-    1010: pythonForMlSource,
-    1011: bosqueSource,
-    1012: cppTestSource,
-    1013: cSource,
-    1014: cppSource,
-    1015: cppTestSource,
-    1021: csharpSource,
-    1022: csharpSource,
-    1023: csharpTestSource,
-    1024: fsharpSource
 };
 
 var fileNames = {
@@ -848,51 +530,8 @@ var fileNames = {
     54: "main.cpp",
 };
 
-var languageIdTable = {
-    1001: 1,
-    1002: 2,
-    1003: 3,
-    1004: 4,
-    1005: 5,
-    1006: 6,
-    1007: 7,
-    1008: 8,
-    1009: 9,
-    1010: 10,
-    1011: 11,
-    1012: 12,
-    1013: 13,
-    1014: 14,
-    1015: 15,
-    1021: 21,
-    1022: 22,
-    1023: 23,
-    1024: 24
-}
 
-var languageApiUrlTable = {
-    1001: extraApiUrl,
-    1002: extraApiUrl,
-    1003: extraApiUrl,
-    1004: extraApiUrl,
-    1005: extraApiUrl,
-    1006: extraApiUrl,
-    1007: extraApiUrl,
-    1008: extraApiUrl,
-    1009: extraApiUrl,
-    1010: extraApiUrl,
-    1011: extraApiUrl,
-    1012: extraApiUrl,
-    1013: extraApiUrl,
-    1014: extraApiUrl,
-    1015: extraApiUrl,
-    1021: extraApiUrl,
-    1022: extraApiUrl,
-    1023: extraApiUrl,
-    1024: extraApiUrl
-}
-
-var competitiveProgrammingInput = "\
+const competitiveProgrammingInput = "\
 3\n\
 3 2\n\
 1 2 5\n\
