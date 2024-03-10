@@ -7,7 +7,7 @@
 
 主要修改的是index.html和ide.js的代码，ide.css涉及到一部分样式，但不是全部
 
-#now
+# now
 可以运行C与C++，但是不支持输入input
 
 删去了ide.js中别的繁琐的代码
