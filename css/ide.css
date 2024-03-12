@@ -1,19 +1,60 @@
-:root {
-    --judge0-black: #333;
-    --judge0-gray: #CED4DA;
-    --judge0-red: #FF8787;
-    --judge0-pink: #F783AC;
-    --judge0-grape: #DA77F2;
-    --judge0-violet: #9775FA;
-    --judge0-indigo: #748FFC;
-    --judge0-blue: #4DABF7;
-    --judge0-cyan: #3BC9DB;
-    --judge0-teal: #38D9A9;
-    --judge0-green: #69DB7C;
-    --judge0-lime: #A9E34B;
-    --judge0-yellow: #FFD43B;
-    --judge0-orange: #FFA94D;
-    --judge0-theme: var(--judge0-indigo);
+：root.none {
+}
+
+:root.black {
+    ---theme: #333;
+}
+
+:root.gray {
+    ---theme: #CED4DA;
+}
+
+:root.red {
+    ---theme: #FF8787;
+}
+
+:root.pink {
+    ---theme: #FFB6C1
+}
+
+:root.grape {
+    ---theme: #DA77F2;
+}
+
+:root.violet {
+    ---theme: #9775FA;
+}
+
+:root.indigo {
+    ---theme: #748FFC;
+}
+
+:root.blue {
+    ---theme: #4DABF7;
+}
+
+:root.cyan {
+    ---theme: #3BC9DB;
+}
+
+:root.teal {
+    ---theme: #38D9A9;
+}
+
+:root.green {
+    ---theme: #69DB7C;
+}
+
+:root.lime {
+    ---theme: #A9E34B;
+}
+
+:root.yellow {
+    ---theme: #FFD43B;
+}
+
+:root.orange {
+    ---theme: #FFA94D;
 }
 
 html, body {
@@ -31,7 +72,7 @@ body {
     background-size: cover;
 }
 
-.ui[class*="left action"].input>.dropdown {
+.ui[class*="left action"].input > .dropdown {
     border-radius: 0 .28571429rem .28571429rem 0;
 }
 
@@ -66,12 +107,21 @@ body {
 }
 
 @keyframes slide {
-    0% { transform: translateX(570px); }
-    100% { transform: translateX(-100%); }
+    0% {
+        transform: translateX(570px);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
 }
+
 @-webkit-keyframes slide {
-    0% { transform: translateX(570px); }
-    100% { transform: translateX(-100%); }
+    0% {
+        transform: translateX(570px);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
 }
 
 .navigation-message-text {
@@ -88,7 +138,7 @@ body {
 }
 
 #navigation-message a {
-    color: var(--judge0-theme);
+    color: var(---theme);
     font-weight: bold;
 }
 
@@ -119,11 +169,11 @@ body {
 }
 
 #run-btn {
-    background-color: var(--judge0-theme);
+    background-color: var(---theme);
 }
 
 #site-footer, #status-line {
-    background-color: var(--judge0-theme);
+    background-color: var(---theme);
     bottom: 0;
     font-family: "Droid Sans Mono", monospace, monospace, "Droid Sans Fallback";
     font-size: 13px;
@@ -146,7 +196,7 @@ body {
 }
 
 #site-footer a:hover {
-    color: #333;
+    color: var(---theme);
 }
 
 #status-line {
