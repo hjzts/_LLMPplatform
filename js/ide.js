@@ -10,6 +10,7 @@ let layout;
 let sourceEditor;
 let stdinEditor;
 let stdoutEditor;
+let $Theme;
 
 let currentLanguageId;
 
@@ -95,6 +96,16 @@ function localStorageGetItem(key) {
     } catch (ignorable) {
         return null;
     }
+}
+
+function fontSizeAdd() {
+    fontSize += 1;
+    editorsUpdateFontSize(fontSize);
+}
+
+function fontSizeSub() {
+    fontSize -= 1;
+    editorsUpdateFontSize(fontSize);
 }
 
 function downloadSource() {
@@ -221,6 +232,18 @@ function loadLanguage() {
     insertBeforeWork();
 }
 
+function updateTheme() {
+    if (localStorage.getItem('Theme') !== null) {
+        $Theme = localStorage.getItem('Theme');
+        let root = document.documentElement;
+        root.className = $Theme;
+    }
+}
+function changeStyle(style) {
+    localStorage.setItem('Theme', style);
+    updateTheme();
+}
+
 function editorsUpdateFontSize(fontSize) {
     sourceEditor.updateOptions({fontSize: fontSize});
     stdinEditor.updateOptions({fontSize: fontSize});
@@ -232,6 +255,7 @@ function updateScreenElements() {
     $(".wide.screen.only").each(function () {
         $(this).css("display", display);
     });
+    updateTheme();
 }
 
 $(window).resize(function () {
@@ -318,7 +342,7 @@ $(document).ready(function () {
             e.preventDefault();
             fontSize -= 1;
             editorsUpdateFontSize(fontSize);
-        } else if (e.ctrlKey && keyCode === 82) {
+        } else if (e.ctrlKey && keyCode === 82) { // Ctrl + R
             e.preventDefault();
             if (confirm("Are you sure? Your current changes will be lost.")) {
                 insertTemplate();
