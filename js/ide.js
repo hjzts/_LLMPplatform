@@ -10,11 +10,12 @@ let layout;
 let sourceEditor;
 let stdinEditor;
 let stdoutEditor;
-let $Theme;
+let $currentThemeId;
 
 let currentLanguageId;
 
 let $selectLanguage;
+let $selectTheme;
 let $compilerOptions;
 let $commandLineArguments;
 let $insertTemplateBtn;
@@ -234,14 +235,10 @@ function loadLanguage() {
 
 function updateTheme() {
     if (localStorage.getItem('Theme') !== null) {
-        $Theme = localStorage.getItem('Theme');
+        $currentThemeId = localStorage.getItem('Theme');
         let root = document.documentElement;
-        root.className = $Theme;
+        root.className = $currentThemeId;
     }
-}
-function changeStyle(style) {
-    localStorage.setItem('Theme', style);
-    updateTheme();
 }
 
 function editorsUpdateFontSize(fontSize) {
@@ -270,6 +267,12 @@ $(document).ready(function () {
     $selectLanguage.change(function () {
         saveOppo();
         insertBeforeWork();
+    });
+    $selectTheme = $("#select-theme");
+    $selectTheme.change(function () {
+        console.log($selectTheme);
+        localStorage.setItem('Theme', $selectTheme.val());
+        updateTheme();
     });
 
     $compilerOptions = $("#compiler-options");
