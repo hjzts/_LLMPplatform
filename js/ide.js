@@ -70,7 +70,7 @@ const layoutConfig = {
         }]
     }]
 };
-
+// 调用 main 函数，开始执行整个流程
 function encode(str) {
     return btoa(unescape(encodeURIComponent(str || "")));
 }
