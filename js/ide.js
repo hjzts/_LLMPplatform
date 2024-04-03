@@ -38,7 +38,7 @@ const layoutConfig = {
         type: "column",
         content: [{
             type: "component",
-            height: 70,
+            height: 71,
             componentName: "source",
             id: "source",
             title: "SOURCE",
@@ -131,9 +131,9 @@ function cleanAll() {
     } else if (currentLanguageId === 54) {
         localStorage.setItem('CppSource', '');
         localStorage.setItem('CppStdin', '');
-    } else if (currentLanguageId == 55) {
-        localStorage.setItem('pySource', '');
-        localStorage.setItem('pyStdin', '');
+    } else if (currentLanguageId == 71) {
+        localStorage.setItem('PySource', '');
+        localStorage.setItem('PyStdin', '');
     }
     sourceEditor.setValue('');
     stdinEditor.setValue('');
@@ -189,6 +189,7 @@ function changeEditorLanguage() {
 }
 
 function insertTemplate() {
+    console.log(currentLanguageId);
     currentLanguageId = parseInt($selectLanguage.val());
     sourceEditor.setValue(sources[currentLanguageId]);
     stdinEditor.setValue(inputs[currentLanguageId] || "");
@@ -205,9 +206,9 @@ function save() {
     } else if (currentLanguageId === 54) {
         localStorage.setItem('CppSource', sourceEditor.getValue());
         localStorage.setItem('CppStdin', stdinEditor.getValue());
-    } else if (currentLanguageId == 55) {
-        localStorage.setItem('pySource', sourceEditor.getValue());
-        localStorage.setItem('pyStdin', stdinEditor.getValue());
+    } else if (currentLanguageId == 71) {
+        localStorage.setItem('PySource', sourceEditor.getValue());
+        localStorage.setItem('PyStdin', stdinEditor.getValue());
     }
 }
 
@@ -216,14 +217,14 @@ function saveOppo() {
     if (currentLanguageId === 54) {
         localStorage.setItem('CSource', sourceEditor.getValue());
         localStorage.setItem('CStdin', stdinEditor.getValue());
-        localStorage.setItem('pySource', sourceEditor.getValue());
-        localStorage.setItem('pyStdin', stdinEditor.getValue());
+        localStorage.setItem('PySource', sourceEditor.getValue());
+        localStorage.setItem('PyStdin', stdinEditor.getValue());
     } else if (currentLanguageId === 50) {
         localStorage.setItem('CppSource', sourceEditor.getValue());
         localStorage.setItem('CppStdin', stdinEditor.getValue());
-        localStorage.setItem('pySource', sourceEditor.getValue());
-        localStorage.setItem('pyStdin', stdinEditor.getValue());
-    } else if (currentLanguageId == 55) {
+        localStorage.setItem('PySource', sourceEditor.getValue());
+        localStorage.setItem('PyStdin', stdinEditor.getValue());
+    } else if (currentLanguageId == 71) {
         localStorage.setItem('CSource', sourceEditor.getValue());
         localStorage.setItem('CStdin', stdinEditor.getValue());
         localStorage.setItem('CppSource', sourceEditor.getValue());
@@ -239,9 +240,9 @@ function insertBeforeWork() {
     } else if (currentLanguageId === 54 && localStorage.getItem('CppSource') !== null) {
         sourceEditor.setValue(localStorage.getItem('CppSource'));
         stdinEditor.setValue(localStorage.getItem('CppStdin'));
-    } else if (currentLanguageId == 55 && loadLanguage().getItem('pySource') !== null) {
-        sourceEditor.setValue(localStorage.getItem('pySource'));
-        stdinEditor.setValue(localStorage.getItem('pyStdin'));
+    } else if (currentLanguageId == 71 && localStorage().getItem('PySource') !== null) {
+        sourceEditor.setValue(localStorage.getItem('PySource'));
+        stdinEditor.setValue(localStorage.getItem('PyStdin'));
     }
     changeEditorLanguage();
 }
@@ -449,7 +450,7 @@ $(document).ready(function () {
 // Template Sources
 const pySource = "\
 print(\"hello world\")\n\
-"
+";
 
 const cSource = "\
 #include <stdio.h>\n\
@@ -572,13 +573,13 @@ int main()\n\
 var sources = {
     50: cSource,
     54: competitiveProgrammingSource,
-    55: pySource
+    71: pySource
 };
 
 var fileNames = {
     50: "main.c",
     54: "main.cpp",
-    55: "main.py"
+    71: "main.py"
 };
 
 
