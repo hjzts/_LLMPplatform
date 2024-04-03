@@ -131,6 +131,9 @@ function cleanAll() {
     } else if (currentLanguageId === 54) {
         localStorage.setItem('CppSource', '');
         localStorage.setItem('CppStdin', '');
+    } else if (currentLanguageId == 55) {
+        localStorage.setItem('pySource', '');
+        localStorage.setItem('pyStdin', '');
     }
     sourceEditor.setValue('');
     stdinEditor.setValue('');
@@ -202,6 +205,9 @@ function save() {
     } else if (currentLanguageId === 54) {
         localStorage.setItem('CppSource', sourceEditor.getValue());
         localStorage.setItem('CppStdin', stdinEditor.getValue());
+    } else if (currentLanguageId == 55) {
+        localStorage.setItem('pySource', sourceEditor.getValue());
+        localStorage.setItem('pyStdin', stdinEditor.getValue());
     }
 }
 
@@ -210,7 +216,16 @@ function saveOppo() {
     if (currentLanguageId === 54) {
         localStorage.setItem('CSource', sourceEditor.getValue());
         localStorage.setItem('CStdin', stdinEditor.getValue());
+        localStorage.setItem('pySource', sourceEditor.getValue());
+        localStorage.setItem('pyStdin', stdinEditor.getValue());
     } else if (currentLanguageId === 50) {
+        localStorage.setItem('CppSource', sourceEditor.getValue());
+        localStorage.setItem('CppStdin', stdinEditor.getValue());
+        localStorage.setItem('pySource', sourceEditor.getValue());
+        localStorage.setItem('pyStdin', stdinEditor.getValue());
+    } else if (currentLanguageId == 55) {
+        localStorage.setItem('CSource', sourceEditor.getValue());
+        localStorage.setItem('CStdin', stdinEditor.getValue());
         localStorage.setItem('CppSource', sourceEditor.getValue());
         localStorage.setItem('CppStdin', stdinEditor.getValue());
     }
@@ -224,6 +239,9 @@ function insertBeforeWork() {
     } else if (currentLanguageId === 54 && localStorage.getItem('CppSource') !== null) {
         sourceEditor.setValue(localStorage.getItem('CppSource'));
         stdinEditor.setValue(localStorage.getItem('CppStdin'));
+    } else if (currentLanguageId == 55 && loadLanguage().getItem('pySource') !== null) {
+        sourceEditor.setValue(localStorage.getItem('pySource'));
+        stdinEditor.setValue(localStorage.getItem('pyStdin'));
     }
     changeEditorLanguage();
 }
@@ -429,6 +447,10 @@ $(document).ready(function () {
 });
 
 // Template Sources
+const pySource = "\
+print(\"hello world\")\n\
+"
+
 const cSource = "\
 #include <stdio.h>\n\
 \n\
@@ -550,11 +572,13 @@ int main()\n\
 var sources = {
     50: cSource,
     54: competitiveProgrammingSource,
+    55: pySource
 };
 
 var fileNames = {
     50: "main.c",
     54: "main.cpp",
+    55: "main.py"
 };
 
 
