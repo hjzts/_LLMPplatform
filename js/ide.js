@@ -70,6 +70,15 @@ const layoutConfig = {
         }]
     }]
 };
+
+async function myRunPython(msg) {
+    // 等待 Pyodide 加载完成，并将其存储在 pyodide 变量中
+    let pyodide = await loadPyodide();
+    // 使用 pyodide.runPython() 运行 Python 代码，并打印结果到控制台
+    console.log(pyodide.runPython(msg));
+
+}
+
 // 调用 main 函数，开始执行整个流程
 function encode(str) {
     return btoa(unescape(encodeURIComponent(str || "")));
@@ -148,36 +157,42 @@ function showError(title, content) {
 }
 
 function run() {
-    if (sourceEditor.getValue().trim() === "") {
-        showError("Error", "Source code can't be empty!");
-        return;
+    if (currentLanguageId === 71) {
+        var msg = sourceEditor.getValue();
+        myRunPython(msg);
+
     } else {
-        $runBtn.addClass("loading");
+        if (sourceEditor.getValue().trim() === "") {
+            showError("Error", "Source code can't be empty!");
+            return;
+        } else {
+            $runBtn.addClass("loading");
+        }
+
+        document.getElementById("stdout-dot").hidden = true;
+
+        stdoutEditor.setValue("");
+
+        const x = layout.root.getItemsById("stdout")[0];
+        x.parent.header.parent.setActiveContentItem(x);
+
+        const sourceValue = (sourceEditor.getValue());
+        const compilerOptions = "g++ -std=c++23  -O2 -Wall -Wextra -pedantic -pthread -pedantic-errors main.cpp -lm  -latomic  2>&1 | sed \"s/^//\"; if [ -x a.out ]; then ./a.out | sed \"s/^//\"; fi";
+
+        const data = {
+            src: sourceValue,
+            cmd: compilerOptions,
+        };
+
+        const sendRequest = function (data) {
+            const http = new XMLHttpRequest();
+            http.open("POST", apiUrl, false);
+            http.send(JSON.stringify(data));
+            stdoutEditor.setValue(http.response);
+            $runBtn.removeClass("loading");
+        };
+        sendRequest(data);
     }
-
-    document.getElementById("stdout-dot").hidden = true;
-
-    stdoutEditor.setValue("");
-
-    const x = layout.root.getItemsById("stdout")[0];
-    x.parent.header.parent.setActiveContentItem(x);
-
-    const sourceValue = (sourceEditor.getValue());
-    const compilerOptions = "g++ -std=c++23  -O2 -Wall -Wextra -pedantic -pthread -pedantic-errors main.cpp -lm  -latomic  2>&1 | sed \"s/^//\"; if [ -x a.out ]; then ./a.out | sed \"s/^//\"; fi";
-
-    const data = {
-        src: sourceValue,
-        cmd: compilerOptions,
-    };
-
-    const sendRequest = function (data) {
-        const http = new XMLHttpRequest();
-        http.open("POST", apiUrl, false);
-        http.send(JSON.stringify(data));
-        stdoutEditor.setValue(http.response);
-        $runBtn.removeClass("loading");
-    };
-    sendRequest(data);
 }
 
 /**************************** Other Setting ****************************/
