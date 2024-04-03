@@ -71,13 +71,7 @@ const layoutConfig = {
     }]
 };
 
-async function myRunPython(msg) {
-    // 等待 Pyodide 加载完成，并将其存储在 pyodide 变量中
-    let pyodide = await loadPyodide();
-    // 使用 pyodide.runPython() 运行 Python 代码，并打印结果到控制台
-    console.log(pyodide.runPython(msg));
 
-}
 
 // 调用 main 函数，开始执行整个流程
 function encode(str) {
@@ -155,7 +149,21 @@ function showError(title, content) {
     $("#site-modal .content").html(content);
     $("#site-modal").modal("show");
 }
+async function myRunPython(msg) {
+    $runBtn.addClass("loading");
+    stdoutEditor.setValue("")
+    // 等待 Pyodide 加载完成，并将其存储在 pyodide 变量中
+    let pyodide = await loadPyodide();
+    // 使用 pyodide.runPython() 运行 Python 代码，并打印结果到控制台
+    var ret = pyodide.runPython(msg);
 
+    const x = layout.root.getItemsById("stdout")[0];
+    x.parent.header.parent.setActiveContentItem(x);
+    console.log("!!!!!!");
+    console.log(ret);
+    stdoutEditor.setValue(ret.toString());
+    $runBtn.removeClass("loading");
+}
 function run() {
     if (currentLanguageId === 71) {
         var msg = sourceEditor.getValue();
@@ -227,23 +235,16 @@ function save() {
     }
 }
 
-function saveOppo() {
-    currentLanguageId = parseInt($selectLanguage.val());
-    if (currentLanguageId === 54) {
+function saveOppo(lastLanguageId) {
+    if (lastLanguageId === 50) {
         localStorage.setItem('CSource', sourceEditor.getValue());
         localStorage.setItem('CStdin', stdinEditor.getValue());
-        localStorage.setItem('PySource', sourceEditor.getValue());
-        localStorage.setItem('PyStdin', stdinEditor.getValue());
-    } else if (currentLanguageId === 50) {
+    } else if (lastLanguageId === 54) {
         localStorage.setItem('CppSource', sourceEditor.getValue());
         localStorage.setItem('CppStdin', stdinEditor.getValue());
+    } else if (lastLanguageId == 71) {
         localStorage.setItem('PySource', sourceEditor.getValue());
         localStorage.setItem('PyStdin', stdinEditor.getValue());
-    } else if (currentLanguageId == 71) {
-        localStorage.setItem('CSource', sourceEditor.getValue());
-        localStorage.setItem('CStdin', stdinEditor.getValue());
-        localStorage.setItem('CppSource', sourceEditor.getValue());
-        localStorage.setItem('CppStdin', stdinEditor.getValue());
     }
 }
 
@@ -255,7 +256,7 @@ function insertBeforeWork() {
     } else if (currentLanguageId === 54 && localStorage.getItem('CppSource') !== null) {
         sourceEditor.setValue(localStorage.getItem('CppSource'));
         stdinEditor.setValue(localStorage.getItem('CppStdin'));
-    } else if (currentLanguageId == 71 && localStorage().getItem('PySource') !== null) {
+    } else if (currentLanguageId == 71 && localStorage.getItem('PySource') !== null) {
         sourceEditor.setValue(localStorage.getItem('PySource'));
         stdinEditor.setValue(localStorage.getItem('PyStdin'));
     }
@@ -298,8 +299,9 @@ $(document).ready(function () {
     updateScreenElements();
 
     $selectLanguage = $("#select-language");
+    let lastLanguageId = $selectLanguage.val();
     $selectLanguage.change(function () {
-        saveOppo();
+        saveOppo(lastLanguageId);
         insertBeforeWork();
     });
     $selectTheme = $("#select-theme");
