@@ -71,7 +71,6 @@ const layoutConfig = {
 };
 
 
-
 // 调用 main 函数，开始执行整个流程
 function encode(str) {
     return btoa(unescape(encodeURIComponent(str || "")));
@@ -148,25 +147,36 @@ function showError(title, content) {
     $("#site-modal .content").html(content);
     $("#site-modal").modal("show");
 }
+
 async function myRunPython(msg) {
     $runBtn.addClass("loading");
-    stdoutEditor.setValue("")
-    // 等待 Pyodide 加载完成，并将其存储在 pyodide 变量中
+    stdoutEditor.setValue("");
     let pyodide = await loadPyodide();
-    // 使用 pyodide.runPython() 运行 Python 代码，并打印结果到控制台
-    var ret = pyodide.runPython(msg);
+    const ret = pyodide.runPython(msg);
+    console.log(ret);
+    // pyodide.runPythonAsync(msg);
+    // var ret = await new Promise((resolve, reject) => {
+    //     try {
+    //         resolve(pyodide.runPython(msg));
+    //     } catch (error) {
+    //         reject(error);
+    //     }
+    // });
+    const result = pyodide.runPython('2 + 2');
+    console.log(result); // 输出: 4
 
     const x = layout.root.getItemsById("stdout")[0];
     x.parent.header.parent.setActiveContentItem(x);
     console.log("!!!!!!");
     console.log(ret);
-    stdoutEditor.setValue(ret.toString());
+    stdoutEditor.setValue("le");
     $runBtn.removeClass("loading");
 }
+
 function run() {
     if (currentLanguageId === 71) {
-        var msg = sourceEditor.getValue();
-        myRunPython(msg);
+        const msg = sourceEditor.getValue().trim();
+        myRunPython(msg.toString());
 
     } else {
         if (sourceEditor.getValue().trim() === "") {
