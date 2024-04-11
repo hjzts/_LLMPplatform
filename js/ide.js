@@ -17,7 +17,6 @@ let currentLanguageId;
 let $selectLanguage;
 let $selectTheme;
 let $compilerOptions;
-let $commandLineArguments;
 let $insertTemplateBtn;
 let $runBtn;
 let $saveBtn;
@@ -312,8 +311,6 @@ $(document).ready(function () {
     });
 
     $compilerOptions = $("#compiler-options");
-    $commandLineArguments = $("#command-line-arguments");
-    $commandLineArguments.attr("size", $commandLineArguments.attr("placeholder").length);
 
     $insertTemplateBtn = $("#insert-template-btn");
     $insertTemplateBtn.click(function () {
@@ -416,7 +413,6 @@ $(document).ready(function () {
                 currentLanguageId = parseInt($selectLanguage.val());
             });
 
-            sourceEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, run);
         });
 
         layout.registerComponent("stdin", function (container, state) {

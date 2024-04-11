@@ -122,17 +122,17 @@
             </select>
         </div>
         <div class="item borderless">
+            <select id="select-LLM" class="ui dropdown">
+                <option value="code generation">code generation</option>
+                <option value="code debug">code debug</option>
+            </select>
+        </div>
+        <div class="item borderless">
             <select id="select-language" class="ui dropdown">
                 <option value="50" mode="c">C</option>
                 <option value="54" mode="cpp">C++</option>
                 <option value="71" mode="python">Python</option>
             </select>
-        </div>
-        <div class="item borderless wide screen only">
-            <div class="ui input">
-                <input id="command-line-arguments" type="text"
-                       placeholder="Command line arguments"></input>
-            </div>
         </div>
         <div class="item no-left-padding borderless">
             <button id="run-btn" class="ui primary labeled icon button"><i
