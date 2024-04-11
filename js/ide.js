@@ -152,8 +152,14 @@ async function myRunPython(msg) {
     $runBtn.addClass("loading");
     stdoutEditor.setValue("");
     let pyodide = await loadPyodide();
-    const ret = pyodide.runPython(msg);
-    console.log(ret);
+    pyodide.runPython(`
+    import sys
+    from io import StringIO
+    sys.stdout = StringIO()
+    `);
+    pyodide.runPython(msg);
+    const stdout = pyodide.runPython("sys.stdout.getvalue()");
+    console.log(stdout);
     // pyodide.runPythonAsync(msg);
     // var ret = await new Promise((resolve, reject) => {
     //     try {
@@ -162,21 +168,16 @@ async function myRunPython(msg) {
     //         reject(error);
     //     }
     // });
-    const result = pyodide.runPython('2 + 2');
-    console.log(result); // 输出: 4
-
     const x = layout.root.getItemsById("stdout")[0];
     x.parent.header.parent.setActiveContentItem(x);
-    console.log("!!!!!!");
-    console.log(ret);
-    stdoutEditor.setValue("le");
+    stdoutEditor.setValue(stdout);
     $runBtn.removeClass("loading");
 }
 
 function run() {
     if (currentLanguageId === 71) {
-        const msg = sourceEditor.getValue().trim();
-        myRunPython(msg.toString());
+        const msg = sourceEditor.getValue();
+        myRunPython(msg);
 
     } else {
         if (sourceEditor.getValue().trim() === "") {
