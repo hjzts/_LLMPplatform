@@ -132,7 +132,7 @@ function cleanAll() {
     } else if (currentLanguageId === 54) {
         localStorage.setItem('CppSource', '');
         localStorage.setItem('CppStdin', '');
-    } else if (currentLanguageId == 71) {
+    } else if (currentLanguageId === 71) {
         localStorage.setItem('PySource', '');
         localStorage.setItem('PyStdin', '');
     }
@@ -238,7 +238,7 @@ function save() {
     } else if (currentLanguageId === 54) {
         localStorage.setItem('CppSource', sourceEditor.getValue());
         localStorage.setItem('CppStdin', stdinEditor.getValue());
-    } else if (currentLanguageId == 71) {
+    } else if (currentLanguageId === 71) {
         localStorage.setItem('PySource', sourceEditor.getValue());
         localStorage.setItem('PyStdin', stdinEditor.getValue());
     }
@@ -251,7 +251,7 @@ function saveOppo(lastLanguageId) {
     } else if (lastLanguageId === 54) {
         localStorage.setItem('CppSource', sourceEditor.getValue());
         localStorage.setItem('CppStdin', stdinEditor.getValue());
-    } else if (lastLanguageId == 71) {
+    } else if (lastLanguageId === 71) {
         localStorage.setItem('PySource', sourceEditor.getValue());
         localStorage.setItem('PyStdin', stdinEditor.getValue());
     }
@@ -265,7 +265,7 @@ function insertBeforeWork() {
     } else if (currentLanguageId === 54 && localStorage.getItem('CppSource') !== null) {
         sourceEditor.setValue(localStorage.getItem('CppSource'));
         stdinEditor.setValue(localStorage.getItem('CppStdin'));
-    } else if (currentLanguageId == 71 && localStorage.getItem('PySource') !== null) {
+    } else if (currentLanguageId === 71 && localStorage.getItem('PySource') !== null) {
         sourceEditor.setValue(localStorage.getItem('PySource'));
         stdinEditor.setValue(localStorage.getItem('PyStdin'));
     }
