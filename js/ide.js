@@ -160,14 +160,6 @@ async function myRunPython(msg) {
     pyodide.runPython(msg);
     const stdout = pyodide.runPython("sys.stdout.getvalue()");
     console.log(stdout);
-    // pyodide.runPythonAsync(msg);
-    // var ret = await new Promise((resolve, reject) => {
-    //     try {
-    //         resolve(pyodide.runPython(msg));
-    //     } catch (error) {
-    //         reject(error);
-    //     }
-    // });
     const x = layout.root.getItemsById("stdout")[0];
     x.parent.header.parent.setActiveContentItem(x);
     stdoutEditor.setValue(stdout);
@@ -186,7 +178,6 @@ function run() {
         } else {
             $runBtn.addClass("loading");
         }
-
         document.getElementById("stdout-dot").hidden = true;
 
         stdoutEditor.setValue("");
@@ -202,14 +193,11 @@ function run() {
             cmd: compilerOptions,
         };
 
-        const sendRequest = function (data) {
-            const http = new XMLHttpRequest();
-            http.open("POST", apiUrl, false);
-            http.send(JSON.stringify(data));
-            stdoutEditor.setValue(http.response);
-            $runBtn.removeClass("loading");
-        };
-        sendRequest(data);
+        const http = new XMLHttpRequest();
+        http.open("POST", apiUrl, false);
+        http.send(JSON.stringify(data));
+        stdoutEditor.setValue(http.response);
+        $runBtn.removeClass("loading");
     }
 }
 
@@ -231,7 +219,6 @@ function insertTemplate() {
 }
 
 function save() {
-    console.log("save!");
     currentLanguageId = parseInt($selectLanguage.val());
     if (currentLanguageId === 50) {
         localStorage.setItem('CSource', sourceEditor.getValue());
