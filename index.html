@@ -102,6 +102,17 @@
         <div id="save-btn" class="ui dropdown item site-links on-hover">
             SAVE (Ctrl + S)
         </div>
+        <div class="ui dropdown item site-links on-hover">
+            code Assistant <i class="dropdown icon"></i>
+            <div class="menu">
+                <div class="item" onclick="codeGeneration()">
+                    code generation
+                </div>
+                <div class="item" onclick="codeDebug()">
+                    code debug
+                </div>
+            </div>
+        </div>
         <div class="item borderless">
             <select id="select-theme" class="ui dropdown">
                 <option value="black" style="color: #333333">black</option>
@@ -118,12 +129,6 @@
                 <option value="lime" style="color: #A9E34B">lime</option>
                 <option value="yellow" style="color: #FFD43B">yellow</option>
                 <option value="orange" style="color: #FFA94D">orange</option>
-            </select>
-        </div>
-        <div class="item borderless">
-            <select id="select-LLM" class="ui dropdown">
-                <option value="code generation">code generation</option>
-                <option value="code debug">code debug</option>
             </select>
         </div>
         <div class="item borderless">

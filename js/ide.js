@@ -124,6 +124,14 @@ function newFile() {
     }
 }
 
+function codeGeneration() {
+
+}
+
+function codeDebug() {
+
+}
+
 function cleanAll() {
     currentLanguageId = parseInt($selectLanguage.val());
     if (currentLanguageId === 50) {
@@ -219,6 +227,7 @@ function insertTemplate() {
 }
 
 function save() {
+    console.log("save!");
     currentLanguageId = parseInt($selectLanguage.val());
     if (currentLanguageId === 50) {
         localStorage.setItem('CSource', sourceEditor.getValue());
